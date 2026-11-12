@@ -1,0 +1,91 @@
+@page "/personagem/{Id:int}"
+@inject NarutoService Service
+
+<PageTitle>@(character?.Name ?? "Personagem") | Search Naruto API</PageTitle>
+
+<div class="details">
+    <a class="back" href="">&laquo; Voltar para a lista</a>
+
+    @if (isLoading)
+    {
+        <p class="status">Carregando...</p>
+    }
+    else if (errorMessage is not null)
+    {
+        <p class="status error">@errorMessage</p>
+    }
+    else if (character is null)
+    {
+        <p class="status">Personagem não encontrado.</p>
+    }
+    else
+    {
+        <h1>@character.Name</h1>
+
+        @if (character.Images is { Count: > 0 } images)
+        {
+            <div class="gallery">
+                @foreach (var image in images)
+                {
+                    <img src="@image" alt="@character.Name" referrerpolicy="no-referrer" />
+                }
+            </div>
+        }
+
+        <section>
+            <p><strong>ID:</strong> @character.Id</p>
+            <p><strong>Clã:</strong> @Join(character.Clan)</p>
+            <p><strong>Afiliação:</strong> @Join(character.Affiliation)</p>
+            <p><strong>Patente ninja:</strong> @Join(character.NinjaRank)</p>
+        </section>
+
+        <section>
+            <h2>Jutsus (@(character.Jutsu?.Count ?? 0))</h2>
+            @if (character.Jutsu is { Count: > 0 } jutsus)
+            {
+                <ul class="jutsu-list columns">
+                    @foreach (var jutsu in jutsus)
+                    {
+                        <li>@jutsu</li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p>Nenhum jutsu informado.</p>
+            }
+        </section>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Character? character;
+    private bool isLoading;
+    private string? errorMessage;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            character = await Service.GetByIdAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            character = null;
+            errorMessage = $"Erro ao consultar a API: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private static string Join(List<string> values) =>
+        values.Count > 0 ? string.Join(", ", values) : "Não informado";
+}

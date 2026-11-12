@@ -1,0 +1,45 @@
+<div class="card">
+    <a href="personagem/@Character.Id">
+        @if (Character.Image is not null)
+        {
+            <img src="@Character.Image" alt="@Character.Name" loading="lazy" referrerpolicy="no-referrer" />
+        }
+        else
+        {
+            <div class="no-image">Sem imagem</div>
+        }
+    </a>
+
+    <div class="card-body">
+        <h2><a href="personagem/@Character.Id">@Character.Name</a></h2>
+
+        <p><strong>Clã:</strong> @Join(Character.Clan)</p>
+        <p><strong>Afiliação:</strong> @Join(Character.Affiliation)</p>
+        <p><strong>Patente ninja:</strong> @Join(Character.NinjaRank)</p>
+
+        @if (Character.Jutsu is { Count: > 0 } jutsus)
+        {
+            <details>
+                <summary><strong>Jutsus</strong> (@jutsus.Count)</summary>
+                <ul class="jutsu-list">
+                    @foreach (var jutsu in jutsus)
+                    {
+                        <li>@jutsu</li>
+                    }
+                </ul>
+            </details>
+        }
+        else
+        {
+            <p><strong>Jutsus:</strong> Nenhum informado</p>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public Character Character { get; set; } = default!;
+
+    private static string Join(List<string> values) =>
+        values.Count > 0 ? string.Join(", ", values) : "Não informado";
+}
